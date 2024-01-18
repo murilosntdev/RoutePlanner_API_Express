@@ -17,6 +17,21 @@ app.use(
     })
 );
 
+app.get("/", (req, res) => {
+    res.status(200);
+    res.json({
+        status: 200,
+        message: "Bem-vindo à RoutePlanner API Express",
+        details: {
+            version: process.env.API_VERSION,
+            operating_status: "online",
+            links: {
+                documentation: "https://github.com/murilosntdev/RoutePlanner_API_Express"
+            }
+        }
+    })
+})
+
 app.use("/account", accountRouter);
 
 app.use((req, res) => {
