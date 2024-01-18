@@ -19,4 +19,16 @@ app.use(
 
 app.use("/account", accountRouter);
 
+app.use((req, res) => {
+    const statusCode = 404;
+    const message = "Rota Não Encontrada";
+    res.status(statusCode);
+    res.json({
+        error: {
+            status: statusCode,
+            message: message
+        }
+    });
+});
+
 app.listen(port, () => console.log("API Running..."));
