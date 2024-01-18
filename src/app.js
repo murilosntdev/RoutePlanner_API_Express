@@ -2,6 +2,7 @@ import compression from "compression";
 import cors from "cors";
 import express from "express";
 import * as dotenv from "dotenv";
+import accountRouter from "./routes/account.route.js";
 
 dotenv.config();
 
@@ -15,5 +16,7 @@ app.use(
         origin: process.env.CORS_ORIGIN
     })
 );
+
+app.use("/account", accountRouter);
 
 app.listen(port, () => console.log("API Running..."));
