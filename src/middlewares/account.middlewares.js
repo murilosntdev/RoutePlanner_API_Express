@@ -1,3 +1,4 @@
+import { selectIdByCnpjEmail } from "../models/Account.js";
 import { errorResponse } from "../services/responses.js/error.response.js";
 import { validateCnpj } from "../services/validators/docNumber.validator.js";
 import { validateEmail } from "../services/validators/email.validator.js";
@@ -51,6 +52,25 @@ export const validateNewCompanyInput = (req, res, next) => {
     if (inputErrors.length > 0) {
         res.status(422);
         res.json(errorResponse(422, inputErrors));
+        return;
+    }
+
+    next();
+}
+
+export const checkNewCompanyPreviousConditions = async (req, res, next) => {
+    const cnpj = req.body.cnpj;
+    const email = req.body.email;
+
+    const checkAccountExistence = await selectIdByCnpjEmail(cnpj, email);
+
+    if (checkAccountExistence.dbError) {
+        res.status(503);
+        res.json(errorResponse(503, null, checkAccountExistence));
+        return;
+    } else if (checkAccountExistence.rows[0]) {
+        res.status(409);
+        res.json(errorResponse(409, "Não é possível cadastrar uma companhia com esse CNPJ e/ou email"));
         return;
     }
 
