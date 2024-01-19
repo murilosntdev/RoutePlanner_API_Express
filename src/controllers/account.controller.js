@@ -20,11 +20,11 @@ export const newCompany = async (req, res) => {
     }
 
     const responseDetail = {
-        "result": `Companhia '${insertInfos.name}' criada com sucesso`,
+        "result": `Companhia '${insertInfos.rows[0].name}' criada com sucesso`,
         "account_info": {
             "type": "company",
-            "cnpj": insertInfos.cnpj,
-            "status": insertInfos.status
+            "cnpj": insertInfos.rows[0].cnpj,
+            "status": insertInfos.rows[0].status
         }
     };
 
