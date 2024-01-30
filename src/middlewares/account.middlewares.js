@@ -2,6 +2,7 @@ import { selectIdByCnpjEmail } from "../models/Account.js";
 import { errorResponse } from "../services/responses.js/error.response.js";
 import { validateCnpj } from "../services/validators/docNumber.validator.js";
 import { validateEmail } from "../services/validators/email.validator.js";
+import { validateStringField } from "../services/validators/fieldFormat.validator.js";
 import { validateCompanyName } from "../services/validators/name.validator.js";
 import { validatePassword } from "../services/validators/password.validator.js";
 
@@ -71,6 +72,53 @@ export const checkNewCompanyPreviousConditions = async (req, res, next) => {
     } else if (checkAccountExistence.rows[0]) {
         res.status(409);
         res.json(errorResponse(409, "Não é possível cadastrar uma companhia com esse CNPJ e/ou email"));
+        return;
+    }
+
+    next();
+}
+
+export const validateActivateInput = (req, res, next) => {
+    const action = req.body.action;
+    const account_type = req.body.account_type;
+    const cpf_cnpj = req.body.cpf_cnpj;
+
+    var inputErrors = [];
+
+    if (!action) {
+        inputErrors.push({ action: "O campo 'action' é obrigatório" });
+    } else {
+        var validAction = validateStringField(action, 'action');
+        if (validAction != 'validString') {
+            inputErrors.push(validAction);
+        }
+    }
+
+    if (!account_type) {
+        inputErrors.push({ account_type: "O campo 'account_type' é obrigatório" });
+    } else {
+        var validAccountType = validateStringField(account_type, 'account_type');
+        if (validAccountType != 'validString') {
+            inputErrors.push(validAccountType);
+        }
+    }
+
+    if (!cpf_cnpj) {
+        inputErrors.push({ cpf_cnpj: "O campo 'cpf_cnpj' é obrigatório" });
+    } else {
+        if (account_type === "company") {
+            var validCpfCnpj = validateCnpj(cpf_cnpj, "cpf_cnpj");
+            if (validCpfCnpj != 'validCnpj') {
+                inputErrors.push(validCpfCnpj);
+            }
+        } else {
+            inputErrors.push({ account_type: "O campo 'account_type' deve conter um valor válido" })
+        }
+    }
+
+    if (inputErrors.length > 0) {
+        res.status(422);
+        res.json(errorResponse(422, inputErrors));
         return;
     }
 
