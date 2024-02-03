@@ -1,5 +1,6 @@
 import { insertAllCompany } from "../models/Account.js";
 import { createAuthCode } from "../services/authCode.js";
+import { hideEmail, sendMail } from "../services/email/email.js";
 import { errorResponse } from "../services/responses/error.response.js";
 import { successResponse } from "../services/responses/success.response.js";
 import * as bcrypt from "bcrypt";
@@ -37,20 +38,36 @@ export const newCompany = async (req, res) => {
 export const activate = async (req, res) => {
     const action = req.body.action;
     const account_type = req.body.account_type;
-    const cpf_cnpj = req.body.cpf_cnpj;
     const account_id = req.body.account_id;
+    const name = req.body.name;
+    const email = req.body.email;
 
     if (action === "create_auth_code") {
-        if (account_type === "company") {
-            var authCodeResult = await createAuthCode(account_id, account_type, "VALIDATE_ACCOUNT", 6, 5);
+        var authCodeResult = await createAuthCode(account_id, account_type, "VALIDATE_ACCOUNT", 6, 5);
 
-            if (authCodeResult.dbError) {
-                res.status(503);
-                res.json(errorResponse(503, null, authCodeResult));
-                return;
-            }
-
-            console.log("token criado");
+        if (authCodeResult.dbError) {
+            res.status(503);
+            res.json(errorResponse(503, null, authCodeResult));
+            return;
         }
+
+        var templateContext = {
+            name: name,
+            authCode: authCodeResult.rows[0].hash
+        };
+
+        var emailResult = await sendMail(email, 'Confirme seu Email', 'activateAccount', templateContext);
+
+        if (emailResult.emailError) {
+            res.status(503);
+            res.json(errorResponse(503, null, emailResult));
+            return;
+        }
+
+        const hiddenEmail = hideEmail(emailResult.accepted[0]);
+
+        res.status(201);
+        res.json(successResponse(201, `Código de autenticação enviado para ${hiddenEmail}`));
+        return;
     }
 }

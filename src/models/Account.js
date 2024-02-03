@@ -14,8 +14,8 @@ export const insertAllCompany = async (name, cnpj, email, hashPassword, status) 
     return (result);
 }
 
-export const selectIdStatusByCnpj = async (cnpj) => {
-    var query = `SELECT id, status FROM company WHERE (cnpj = $1)`;
+export const selectIdNameEmailStatusByCnpj = async (cnpj) => {
+    var query = `SELECT id, name, email, status FROM company WHERE (cnpj = $1)`;
     var result = await dbExecute(query, [cnpj]);
 
     return (result);

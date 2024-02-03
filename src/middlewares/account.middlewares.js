@@ -1,4 +1,4 @@
-import { selectIdStatusByCnpj, selectIdByCnpjEmail, selectIdExpirationByCompanyAccount_id } from "../models/Account.js";
+import { selectIdNameEmailStatusByCnpj, selectIdByCnpjEmail, selectIdExpirationByCompanyAccount_id } from "../models/Account.js";
 import { errorResponse } from "../services/responses/error.response.js";
 import { validateCnpj } from "../services/validators/docNumber.validator.js";
 import { validateEmail } from "../services/validators/email.validator.js";
@@ -131,7 +131,7 @@ export const checkActivatePreviousConditions = async (req, res, next) => {
     const cpf_cnpj = req.body.cpf_cnpj;
 
     if (account_type === "company") {
-        const checkCompanyAccountExistence = await selectIdStatusByCnpj(cpf_cnpj);
+        const checkCompanyAccountExistence = await selectIdNameEmailStatusByCnpj(cpf_cnpj);
 
         if (checkCompanyAccountExistence.dbError) {
             res.status(503);
@@ -165,6 +165,8 @@ export const checkActivatePreviousConditions = async (req, res, next) => {
         }
 
         req.body.account_id = checkCompanyAccountExistence.rows[0].id;
+        req.body.name = checkCompanyAccountExistence.rows[0].name;
+        req.body.email = checkCompanyAccountExistence.rows[0].email;
     }
 
     next();

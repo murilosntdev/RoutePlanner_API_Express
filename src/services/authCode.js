@@ -7,7 +7,7 @@ export const createAuthCode = async (account_id, account_type, category, hashSiz
     var expiration = new Date();
     expiration.setTime(expiration.getTime() + expirationInMinutes * 60 * 1000);
 
-    var query1 = `INSERT INTO auth_code (category, hash, expiration) VALUES ($1, $2, $3) RETURNING id`;
+    var query1 = `INSERT INTO auth_code (category, hash, expiration) VALUES ($1, $2, $3) RETURNING id, hash`;
     var result1 = await dbExecute(query1, [category, hash, expiration]);
 
     if (result1.dbError) {
@@ -20,5 +20,9 @@ export const createAuthCode = async (account_id, account_type, category, hashSiz
 
     var result2 = await dbExecute(query2, [result1.rows[0].id, account_type, account_id]);
 
-    return result2;
+    if (result2.dbError) {
+        return result2;
+    }
+
+    return result1;
 }
