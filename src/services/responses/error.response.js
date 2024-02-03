@@ -4,6 +4,16 @@ export const errorResponse = (statusCode, details, debugInfo) => {
     };
 
     switch (statusCode) {
+        case 400: {
+            response.error.status = 400;
+            response.error.message = "O Servidor Recebeu Uma Solicitação Incorreta";
+            break;
+        }
+        case 404: {
+            response.error.status = 404;
+            response.error.message = "Não Encontrado";
+            break;
+        }
         case 409: {
             response.error.status = 409;
             response.error.message = "Houve Um Conflito No Servidor";

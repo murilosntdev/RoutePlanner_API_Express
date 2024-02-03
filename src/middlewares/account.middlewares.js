@@ -1,5 +1,5 @@
-import { selectIdByCnpjEmail } from "../models/Account.js";
-import { errorResponse } from "../services/responses.js/error.response.js";
+import { selectIdStatusByCnpj, selectIdByCnpjEmail, selectIdExpirationByCompanyAccount_id } from "../models/Account.js";
+import { errorResponse } from "../services/responses/error.response.js";
 import { validateCnpj } from "../services/validators/docNumber.validator.js";
 import { validateEmail } from "../services/validators/email.validator.js";
 import { validateStringField } from "../services/validators/fieldFormat.validator.js";
@@ -120,6 +120,51 @@ export const validateActivateInput = (req, res, next) => {
         res.status(422);
         res.json(errorResponse(422, inputErrors));
         return;
+    }
+
+    next();
+}
+
+export const checkActivatePreviousConditions = async (req, res, next) => {
+    const action = req.body.action;
+    const account_type = req.body.account_type;
+    const cpf_cnpj = req.body.cpf_cnpj;
+
+    if (account_type === "company") {
+        const checkCompanyAccountExistence = await selectIdStatusByCnpj(cpf_cnpj);
+
+        if (checkCompanyAccountExistence.dbError) {
+            res.status(503);
+            res.json(errorResponse(503, null, checkCompanyAccountExistence));
+            return;
+        } else if (!checkCompanyAccountExistence.rows[0]) {
+            res.status(404);
+            res.json(errorResponse(404, "Não existe uma companhia com o CNPJ informado"));
+            return;
+        } else if (checkCompanyAccountExistence.rows[0].status !== "NEW_ACCOUNT") {
+            res.status(400);
+            res.json(errorResponse(400, "Não pode ser gerado um código de autenticação para a conta informada"));
+            return;
+        }
+
+        const checkAuthCode = await selectIdExpirationByCompanyAccount_id(checkCompanyAccountExistence.rows[0].id);
+
+        if (checkAuthCode.dbError) {
+            res.status(503);
+            res.json(errorResponse(503, null, checkAuthCode));
+            return;
+        }
+
+        var actualTime = new Date()
+        actualTime.setTime(actualTime.getTime());
+
+        if (checkAuthCode.rows[0] && checkAuthCode.rows[0].expiration > actualTime) {
+            res.status(400);
+            res.json(errorResponse(400, "Ainda existe um código de autenticação ativo para a conta informada"));
+            return;
+        }
+
+        req.body.account_id = checkCompanyAccountExistence.rows[0].id;
     }
 
     next();
