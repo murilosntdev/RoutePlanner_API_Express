@@ -26,3 +26,28 @@ export const createAuthCode = async (account_id, account_type, category, hashSiz
 
     return result1;
 }
+
+export const confirmAuthCode = async (account_id, account_type, category, authCode) => {
+    if (account_type === "company") {
+        var query1 = `SELECT aco.auth_code_id, ac.hash FROM auth_code_owner aco INNER JOIN auth_code ac ON aco.auth_code_id = ac.id WHERE (aco.company_id = $1) AND (ac.category = $2) AND (ac.used = false) ORDER BY ac.id DESC LIMIT 1`;
+    }
+
+    var result1 = await dbExecute(query1, [account_id, category]);
+
+    if (result1.dbError) {
+        return result1;
+    }
+
+    if (result1.rows[0].hash === authCode) {
+        var query2 = `UPDATE auth_code SET used = true WHERE id = $1 RETURNING used`;
+        var result2 = await dbExecute(query2, [result1.rows[0].auth_code_id]);
+
+        if (result2.dbError) {
+            return result2;
+        }
+
+        return (result2.rows[0].used);
+    }
+
+    return (false);
+}

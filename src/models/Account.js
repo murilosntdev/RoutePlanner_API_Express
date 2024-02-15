@@ -22,7 +22,14 @@ export const selectIdNameEmailStatusByCnpj = async (cnpj) => {
 }
 
 export const selectIdExpirationByCompanyAccount_id = async (account_id) => {
-    var query = `SELECT aco.auth_code_id, ac.expiration FROM auth_code_owner aco INNER JOIN auth_code ac ON aco.auth_code_id = ac.id WHERE (aco.company_id = $1) AND (ac.category = 'VALIDATE_ACCOUNT') AND (ac.used = false) ORDER BY ac.id DESC LIMIT 1;`
+    var query = `SELECT aco.auth_code_id, ac.expiration FROM auth_code_owner aco INNER JOIN auth_code ac ON aco.auth_code_id = ac.id WHERE (aco.company_id = $1) AND (ac.category = 'VALIDATE_ACCOUNT') AND (ac.used = false) ORDER BY ac.id DESC LIMIT 1`;
+    var result = await dbExecute(query, [account_id]);
+
+    return (result);
+}
+
+export const updateStatusByCompanyId = async (account_id) => {
+    var query = `UPDATE company SET status = 'ACTIVE_ACCOUNT' WHERE id = $1 RETURNING status`;
     var result = await dbExecute(query, [account_id]);
 
     return (result);

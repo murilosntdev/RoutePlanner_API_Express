@@ -124,7 +124,7 @@ export const validateActivateInput = (req, res, next) => {
         if (!auth_code) {
             inputErrors.push({ auth_code: "O campo 'auth_code' é obrigatório" });
         } else {
-            var validAuthCode = validateAuthCode(code, 'auth_code', 6);
+            var validAuthCode = validateAuthCode(auth_code, 'auth_code', 6);
             if (validAuthCode != 'validAuthCode') {
                 inputErrors.push(validAuthCode);
             }
@@ -158,30 +158,38 @@ export const checkActivatePreviousConditions = async (req, res, next) => {
             return;
         } else if (checkCompanyAccountExistence.rows[0].status !== "NEW_ACCOUNT") {
             res.status(400);
-            res.json(errorResponse(400, "Não pode ser gerado um código de autenticação para a conta informada"));
-            return;
-        }
-
-        const checkAuthCode = await selectIdExpirationByCompanyAccount_id(checkCompanyAccountExistence.rows[0].id);
-
-        if (checkAuthCode.dbError) {
-            res.status(503);
-            res.json(errorResponse(503, null, checkAuthCode));
-            return;
-        }
-
-        var actualTime = new Date()
-        actualTime.setTime(actualTime.getTime());
-
-        if (checkAuthCode.rows[0] && checkAuthCode.rows[0].expiration > actualTime) {
-            res.status(400);
-            res.json(errorResponse(400, "Ainda existe um código de autenticação ativo para a conta informada"));
+            res.json(errorResponse(400, "A conta informada não está apta para ativação"));
             return;
         }
 
         req.body.account_id = checkCompanyAccountExistence.rows[0].id;
         req.body.name = checkCompanyAccountExistence.rows[0].name;
         req.body.email = checkCompanyAccountExistence.rows[0].email;
+    }
+
+    const checkAuthCode = await selectIdExpirationByCompanyAccount_id(req.body.account_id);
+
+    if (checkAuthCode.dbError) {
+        res.status(503);
+        res.json(errorResponse(503, null, checkAuthCode));
+        return;
+    }
+
+    var actualTime = new Date()
+    actualTime.setTime(actualTime.getTime());
+
+    if (action === "create_auth_code") {
+        if (checkAuthCode.rows[0] && checkAuthCode.rows[0].expiration > actualTime) {
+            res.status(400);
+            res.json(errorResponse(400, "Ainda existe um código de autenticação ativo para a conta informada"));
+            return;
+        }
+    } else if (action === "validate_auth_code") {
+        if (!checkAuthCode.rows[0] || actualTime > checkAuthCode.rows[0].expiration) {
+            res.status(400);
+            res.json(errorResponse(400, "Código de autenticação expirado ou inválido"));
+            return;
+        }
     }
 
     next();
