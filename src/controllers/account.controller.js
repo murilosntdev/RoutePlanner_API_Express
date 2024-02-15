@@ -38,6 +38,7 @@ export const newCompany = async (req, res) => {
 export const activate = async (req, res) => {
     const action = req.body.action;
     const account_type = req.body.account_type;
+    const cpf_cnpj = req.body.cpf_cnpj;
     const account_id = req.body.account_id;
     const name = req.body.name;
     const email = req.body.email;
@@ -66,8 +67,16 @@ export const activate = async (req, res) => {
 
         const hiddenEmail = hideEmail(emailResult.accepted[0]);
 
+        const responseDetail = {
+            "result": `Código de autenticação enviado para ${hiddenEmail}`,
+            "account_info": {
+                "type": "company",
+                "cpf_cnpj": cpf_cnpj
+            }
+        }
+
         res.status(201);
-        res.json(successResponse(201, `Código de autenticação enviado para ${hiddenEmail}`));
+        res.json(successResponse(201, responseDetail));
         return;
     }
 }

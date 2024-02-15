@@ -1,5 +1,6 @@
 import { selectIdNameEmailStatusByCnpj, selectIdByCnpjEmail, selectIdExpirationByCompanyAccount_id } from "../models/Account.js";
 import { errorResponse } from "../services/responses/error.response.js";
+import { validateAuthCode } from "../services/validators/authCode.validator.js";
 import { validateCnpj } from "../services/validators/docNumber.validator.js";
 import { validateEmail } from "../services/validators/email.validator.js";
 import { validateStringField } from "../services/validators/fieldFormat.validator.js";
@@ -82,6 +83,7 @@ export const validateActivateInput = (req, res, next) => {
     const action = req.body.action;
     const account_type = req.body.account_type;
     const cpf_cnpj = req.body.cpf_cnpj;
+    const auth_code = req.body.auth_code;
 
     var inputErrors = [];
 
@@ -91,6 +93,8 @@ export const validateActivateInput = (req, res, next) => {
         var validAction = validateStringField(action, 'action');
         if (validAction != 'validString') {
             inputErrors.push(validAction);
+        } else if (action != "create_auth_code" && action != "validate_auth_code") {
+            inputErrors.push({ action: "O campo 'action' deve conter um valor válido" });
         }
     }
 
@@ -100,6 +104,8 @@ export const validateActivateInput = (req, res, next) => {
         var validAccountType = validateStringField(account_type, 'account_type');
         if (validAccountType != 'validString') {
             inputErrors.push(validAccountType);
+        } else if (account_type != "company") {
+            inputErrors.push({ account_type: "O campo 'account_type' deve conter um valor válido" });
         }
     }
 
@@ -111,8 +117,17 @@ export const validateActivateInput = (req, res, next) => {
             if (validCpfCnpj != 'validCnpj') {
                 inputErrors.push(validCpfCnpj);
             }
+        }
+    }
+
+    if (action === "validate_auth_code") {
+        if (!auth_code) {
+            inputErrors.push({ auth_code: "O campo 'auth_code' é obrigatório" });
         } else {
-            inputErrors.push({ account_type: "O campo 'account_type' deve conter um valor válido" })
+            var validAuthCode = validateAuthCode(code, 'auth_code', 6);
+            if (validAuthCode != 'validAuthCode') {
+                inputErrors.push(validAuthCode);
+            }
         }
     }
 
