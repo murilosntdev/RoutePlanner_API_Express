@@ -1,6 +1,6 @@
 {
   "name": "routeplanner_api_express",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "RoutePlanner API with Express",
   "main": "src/app.js",
   "type": "module",
