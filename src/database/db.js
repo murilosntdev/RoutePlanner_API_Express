@@ -21,7 +21,7 @@ if (process.env.SYSTEM_ENVIRONMENT === "staging") {
         password: process.env.POSTGRE_PASSWORD,
         port: process.env.POSTGRE_PORT,
         ssl: {
-            rejectUnauthorized: true
+            rejectUnauthorized: false
         }
     });
 };
