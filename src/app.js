@@ -23,7 +23,7 @@ app.get("/", (req, res) => {
         status: 200,
         message: "Bem-vindo à RoutePlanner API Express",
         details: {
-            version: process.env.API_VERSION,
+            version: process.env.SYSTEM_API_VERSION,
             operating_status: "online",
             links: {
                 documentation: "https://github.com/murilosntdev/RoutePlanner_API_Express"

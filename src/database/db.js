@@ -3,13 +3,28 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-const pool = new pg.Pool({
-    user: process.env.POSTGRE_USER,
-    host: process.env.POSTGRE_HOST,
-    database: process.env.POSTGRE_DATABASE,
-    password: process.env.POSTGRE_PASSWORD,
-    port: process.env.POSTGRE_PORT
-});
+var pool = '';
+
+if (process.env.SYSTEM_ENVIRONMENT === "staging") {
+    pool = new pg.Pool({
+        user: process.env.POSTGRE_USER,
+        host: process.env.POSTGRE_HOST,
+        database: process.env.POSTGRE_DATABASE,
+        password: process.env.POSTGRE_PASSWORD,
+        port: process.env.POSTGRE_PORT
+    });
+} else if (process.env.SYSTEM_ENVIRONMENT === "production") {
+    pool = new pg.Pool({
+        user: process.env.POSTGRE_USER,
+        host: process.env.POSTGRE_HOST,
+        database: process.env.POSTGRE_DATABASE,
+        password: process.env.POSTGRE_PASSWORD,
+        port: process.env.POSTGRE_PORT,
+        ssl: {
+            rejectUnauthorized: true
+        }
+    });
+};
 
 export const dbExecute = (query, params = []) => {
     return new Promise((response) => {
