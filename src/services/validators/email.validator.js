@@ -8,7 +8,7 @@ export const validateEmail = (content, fieldName) => {
         return { [fieldName]: `O campo '${fieldName}' é obrigatório` };
     };
     if (content.length < 5 || content.length > 100) {
-        return { [fieldName]: `O campo '${fieldName}' deve conter entre 5 a 100 caracteres` };
+        return { [fieldName]: `O campo '${fieldName}' deve conter de 5 a 100 caracteres` };
     };
     if (!regex.exec(content)) {
         return { [fieldName]: `O campo '${fieldName}' deve conter um email válido` };
