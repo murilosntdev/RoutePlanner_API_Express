@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body style="height: 100vh; width: 100vw; position: absolute; left: 50%; transform: translateX(-50%)">
+    <table style="border: 0; height: 100%; text-align: center; cellspacing: 0; cellpadding: 0;">
+        <thead style="background-color: #FF6600; height: 20vh">
+            <tr>
+                <td>
+                    <p style="font-size: 4rem; font-weight: bold; color: #003366;">RoutePlanner</p>
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <p style="font-size: 1rem;">Acesso à Conta</p>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <p style="font-size: 1rem; padding: 0 50px">
+                        <strong style="color: #003366;">Atenção: </strong> O código a seguir é pessoal e jamais será
+                        solicitado por mensagem/telefonema
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <p style="font-size: 1rem;">{{name}}, utilize o código abaixo para realizar seu login:</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="background-color: #003366; height: 4rem">
+                    <h1 style="font-size: 2rem;"><strong style="color: #FF6600;">{{authCode}}</strong></h1>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <p style="font-size: 1rem;">Equipe RoutePlanner</p>
+                </td>
+            </tr>
+        </tbody>
+        <tfoot style="background-color: #FF6600; height: 15vh">
+            <tr>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+
+</html>
