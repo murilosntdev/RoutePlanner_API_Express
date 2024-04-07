@@ -1,9 +1,10 @@
 import Router from "express";
-import { preLogin } from "../controllers/session.controller.js";
-import { validatePreLoginInput, checkPreLoginPreviousConditions } from "../middlewares/session.middlewares.js";
+import { login, preLogin } from "../controllers/session.controller.js";
+import { validatePreLoginInput, checkPreLoginPreviousConditions, validateLoginInput, checkLoginPreviousConditions } from "../middlewares/session.middlewares.js";
 
 const sessionRouter = Router();
 
 sessionRouter.post('/preLogin', validatePreLoginInput, checkPreLoginPreviousConditions, preLogin);
+sessionRouter.post('/login', validateLoginInput, checkLoginPreviousConditions, login);
 
 export default sessionRouter;
