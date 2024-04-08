@@ -4,6 +4,7 @@ import { hideEmail, sendMail } from "../services/email/email.js";
 import { errorResponse } from "../services/responses/error.response.js";
 import { successResponse } from "../services/responses/success.response.js";
 import jsonwebtoken from "jsonwebtoken";
+import * as bcrypt from "bcrypt";
 
 const { sign } = jsonwebtoken;
 
@@ -90,10 +91,12 @@ export const login = async (req, res) => {
         return;
     }
 
+    const hashCpf_cnpj = bcrypt.hashSync(cpf_cnpj, 10);
+
     const jwtBearerToken = sign({
         account_type,
         account_id,
-        cpf_cnpj
+        account_info: hashCpf_cnpj
     },
         process.env.JWT_BEARER_TOKEN_KEY,
         {
