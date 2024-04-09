@@ -89,8 +89,8 @@ export const activate = async (req, res) => {
         }
 
         if (authCodeResult === false) {
-            res.status(400);
-            res.json(errorResponse(400, "Código de autenticação expirado ou inválido"));
+            res.status(401);
+            res.json(errorResponse(401, "Código de autenticação expirado ou inválido"));
             return;
         }
 

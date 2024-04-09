@@ -186,8 +186,8 @@ export const checkActivatePreviousConditions = async (req, res, next) => {
         }
     } else if (action === "validate_auth_code") {
         if (!checkAuthCode.rows[0] || actualTime > checkAuthCode.rows[0].expiration) {
-            res.status(400);
-            res.json(errorResponse(400, "Código de autenticação expirado ou inválido"));
+            res.status(401);
+            res.json(errorResponse(401, "Código de autenticação expirado ou inválido"));
             return;
         }
     }

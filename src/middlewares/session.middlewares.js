@@ -72,8 +72,8 @@ export const checkPreLoginPreviousConditions = async (req, res, next) => {
             res.json(errorResponse(503, null, checkCompanyAccountExistence));
             return;
         } else if (!checkCompanyAccountExistence.rows[0] || (checkCompanyAccountExistence.rows[0].status !== 'ACTIVE_ACCOUNT' && checkCompanyAccountExistence.rows[0].status !== 'NEW_ACCOUNT')) {
-            res.status(403);
-            res.json(errorResponse(403, "CNPJ e/ou senha incorretos"));
+            res.status(401);
+            res.json(errorResponse(401, "CNPJ e/ou senha incorretos"));
             return;
         } else if (checkCompanyAccountExistence.rows[0].status === "NEW_ACCOUNT") {
             res.status(400);
@@ -90,8 +90,8 @@ export const checkPreLoginPreviousConditions = async (req, res, next) => {
     const passwordCompareResult = bcrypt.compareSync(password, userPassword);
 
     if (passwordCompareResult !== true) {
-        res.status(403);
-        res.json(errorResponse(403, "CNPJ e/ou senha incorretos"));
+        res.status(401);
+        res.json(errorResponse(401, "CNPJ e/ou senha incorretos"));
         return;
     }
 
@@ -188,8 +188,8 @@ export const checkLoginPreviousConditions = async (req, res, next) => {
             res.json(errorResponse(503, null, checkCompanyAccountExistence));
             return;
         } else if (!checkCompanyAccountExistence.rows[0] || (checkCompanyAccountExistence.rows[0].status !== 'ACTIVE_ACCOUNT' && checkCompanyAccountExistence.rows[0].status !== 'NEW_ACCOUNT')) {
-            res.status(403);
-            res.json(errorResponse(403, "CNPJ e/ou senha incorretos"));
+            res.status(401);
+            res.json(errorResponse(401, "CNPJ e/ou senha incorretos"));
             return;
         } else if (checkCompanyAccountExistence.rows[0].status === "NEW_ACCOUNT") {
             res.status(400);
@@ -206,8 +206,8 @@ export const checkLoginPreviousConditions = async (req, res, next) => {
     const passwordCompareResult = bcrypt.compareSync(password, userPassword);
 
     if (passwordCompareResult !== true) {
-        res.status(403);
-        res.json(errorResponse(403, "CNPJ e/ou senha incorretos"));
+        res.status(401);
+        res.json(errorResponse(401, "CNPJ e/ou senha incorretos"));
         return;
     }
 
@@ -223,8 +223,8 @@ export const checkLoginPreviousConditions = async (req, res, next) => {
     actualTime.setTime(actualTime.getTime());
 
     if (!checkAuthCode.rows[0] || actualTime > checkAuthCode.rows[0].expiration) {
-        res.status(400);
-        res.json(errorResponse(400, "Código de autenticação expirado ou inválido"));
+        res.status(401);
+        res.json(errorResponse(401, "Código de autenticação expirado ou inválido"));
         return;
     }
 
@@ -237,8 +237,8 @@ export const checkLoginPreviousConditions = async (req, res, next) => {
     }
 
     if (authCodeResult === false) {
-        res.status(400);
-        res.json(errorResponse(400, "Código de autenticação expirado ou inválido"));
+        res.status(401);
+        res.json(errorResponse(401, "Código de autenticação expirado ou inválido"));
         return;
     }
 
@@ -274,8 +274,8 @@ export const checkRefreshTokenPreviousConditions = async (req, res, next) => {
     try {
         verify(refresh_token, process.env.JWT_REFRESH_TOKEN_KEY);
     } catch (error) {
-        res.status(403);
-        res.json(errorResponse(403, "'refresh_token' expirado ou inválido"));
+        res.status(401);
+        res.json(errorResponse(401, "'refresh_token' expirado ou inválido"));
         return;
     }
 
@@ -288,8 +288,8 @@ export const checkRefreshTokenPreviousConditions = async (req, res, next) => {
         res.json(errorResponse(503, null, dbRefreshTokenInfos));
         return;
     } else if (!dbRefreshTokenInfos.rows[0]) {
-        res.status(403);
-        res.json(errorResponse(403, "'refresh_token' expirado ou inválido"));
+        res.status(401);
+        res.json(errorResponse(401, "'refresh_token' expirado ou inválido"));
         return;
     }
 
@@ -300,8 +300,8 @@ export const checkRefreshTokenPreviousConditions = async (req, res, next) => {
         (decodedRefreshToken.account_id != dbRefreshTokenInfos.rows[0].company_id) ||
         (decodedRefreshToken.exp != Math.floor(expirationTimestamp.getTime() / 1000))
     ) {
-        res.status(403);
-        res.json(errorResponse(403, "'refresh_token' expirado ou inválido"));
+        res.status(401);
+        res.json(errorResponse(401, "'refresh_token' expirado ou inválido"));
         return;
     }
 
@@ -312,8 +312,8 @@ export const checkRefreshTokenPreviousConditions = async (req, res, next) => {
         res.json(errorResponse(503, null, dbRefreshTokenInfos));
         return;
     } else if (accountData.rows[0].status != "ACTIVE_ACCOUNT") {
-        res.status(403);
-        res.json(errorResponse(403, "'refresh_token' expirado ou inválido"));
+        res.status(401);
+        res.json(errorResponse(401, "'refresh_token' expirado ou inválido"));
         return;
     }
 
