@@ -57,3 +57,17 @@ export const createRefreshToken = async (account_id, account_type, token) => {
 
     return result1;
 }
+
+export const selectIdAccountTypeCompanyIdExpirationByToken = async (refresh_token) => {
+    var query = `SELECT rt.id, rto.account_type, rto.company_id, rt.expiration FROM refresh_token rt INNER JOIN refresh_token_owner rto ON rt.id = rto.refresh_token_id WHERE rt."token" = $1 AND rt.revoked = false`;
+    var result = await dbExecute(query, [refresh_token]);
+
+    return (result);
+}
+
+export const selectCnpjStatusByAccountId = async (account_id) => {
+    var query = `SELECT cnpj, status FROM company WHERE id = $1`;
+    var result = await dbExecute(query, [account_id]);
+
+    return (result);
+}

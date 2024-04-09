@@ -1,4 +1,4 @@
-import { selectIdNameEmailPasswordStatusByCnpj, selectIdExpirationByCompanyAccount_id } from "../models/Session.js";
+import { selectIdNameEmailPasswordStatusByCnpj, selectIdExpirationByCompanyAccount_id, selectIdAccountTypeCompanyIdExpirationByToken, selectCnpjStatusByAccountId } from "../models/Session.js";
 import { confirmAuthCode } from "../services/authCode.js";
 import { errorResponse } from "../services/responses/error.response.js";
 import { validateAuthCode } from "../services/validators/authCode.validator.js";
@@ -6,6 +6,9 @@ import { validateCnpj } from "../services/validators/docNumber.validator.js";
 import { validateStringField } from "../services/validators/fieldFormat.validator.js";
 import { validatePassword } from "../services/validators/password.validator.js";
 import * as bcrypt from "bcrypt";
+import jsonwebtoken from "jsonwebtoken";
+
+const { verify, decode } = jsonwebtoken;
 
 export const validatePreLoginInput = (req, res, next) => {
     const account_type = req.body.account_type;
@@ -238,6 +241,86 @@ export const checkLoginPreviousConditions = async (req, res, next) => {
         res.json(errorResponse(400, "Código de autenticação expirado ou inválido"));
         return;
     }
+
+    next();
+}
+
+export const validateRefreshTokenInput = (req, res, next) => {
+    const refresh_token = req.body.refresh_token;
+
+    var inputErrors = [];
+
+    if (!refresh_token) {
+        inputErrors.push({ refresh_token: "O campo 'refresh_token' é obrigatório" });
+    } else {
+        var validRefreshToken = validateStringField(refresh_token, 'refresh_token');
+        if (validRefreshToken != 'validString') {
+            inputErrors.push(validRefreshToken);
+        }
+    }
+
+    if (inputErrors.length > 0) {
+        res.status(422);
+        res.json(errorResponse(422, inputErrors));
+        return;
+    }
+
+    next();
+}
+
+export const checkRefreshTokenPreviousConditions = async (req, res, next) => {
+    const refresh_token = req.body.refresh_token;
+
+    try {
+        verify(refresh_token, process.env.JWT_REFRESH_TOKEN_KEY);
+    } catch (error) {
+        res.status(403);
+        res.json(errorResponse(403, "'refresh_token' expirado ou inválido"));
+        return;
+    }
+
+    const decodedRefreshToken = decode(refresh_token, process.env.JWT_REFRESH_TOKEN_KEY);
+
+    const dbRefreshTokenInfos = await selectIdAccountTypeCompanyIdExpirationByToken(refresh_token);
+
+    if (dbRefreshTokenInfos.dbError) {
+        res.status(503);
+        res.json(errorResponse(503, null, dbRefreshTokenInfos));
+        return;
+    } else if (!dbRefreshTokenInfos.rows[0]) {
+        res.status(403);
+        res.json(errorResponse(403, "'refresh_token' expirado ou inválido"));
+        return;
+    }
+
+    var expirationTimestamp = new Date(dbRefreshTokenInfos.rows[0].expiration);
+
+    if (
+        (decodedRefreshToken.account_type != dbRefreshTokenInfos.rows[0].account_type) ||
+        (decodedRefreshToken.account_id != dbRefreshTokenInfos.rows[0].company_id) ||
+        (decodedRefreshToken.exp != Math.floor(expirationTimestamp.getTime() / 1000))
+    ) {
+        res.status(403);
+        res.json(errorResponse(403, "'refresh_token' expirado ou inválido"));
+        return;
+    }
+
+    const accountData = await selectCnpjStatusByAccountId(decodedRefreshToken.account_id);
+
+    if (dbRefreshTokenInfos.dbError) {
+        res.status(503);
+        res.json(errorResponse(503, null, dbRefreshTokenInfos));
+        return;
+    } else if (accountData.rows[0].status != "ACTIVE_ACCOUNT") {
+        res.status(403);
+        res.json(errorResponse(403, "'refresh_token' expirado ou inválido"));
+        return;
+    }
+
+    req.body.account_type = dbRefreshTokenInfos.rows[0].account_type;
+    req.body.account_id = decodedRefreshToken.account_id;
+    req.body.cpf_cnpj = accountData.rows[0].cnpj;
+    req.body.refreshTokenId = dbRefreshTokenInfos.rows[0].id;
 
     next();
 }

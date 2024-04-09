@@ -120,3 +120,56 @@ export const login = async (req, res) => {
     res.status(200);
     res.json(successResponse(200, responseDetail));
 }
+
+export const refreshToken = async (req, res) => {
+    const account_type = req.body.account_type;
+    const account_id = req.body.account_id;
+    const cpf_cnpj = req.body.cpf_cnpj;
+
+    const revokeResult = await revokeRefreshToken(account_id, account_type);
+
+    if (revokeResult.dbError) {
+        res.status(503);
+        res.json(errorResponse(503, null, revokeResult));
+        return;
+    }
+
+    const jwtRefreshToken = sign({
+        account_type,
+        account_id,
+    },
+        process.env.JWT_REFRESH_TOKEN_KEY,
+        {
+            expiresIn: "12h"
+        }
+    );
+
+    const refreshToken = await createRefreshToken(account_id, account_type, jwtRefreshToken);
+
+    if (refreshToken.dbError) {
+        res.status(503);
+        res.json(errorResponse(503, null, refreshToken));
+        return;
+    }
+
+    const hashCpf_cnpj = bcrypt.hashSync(cpf_cnpj, 10);
+
+    const jwtBearerToken = sign({
+        account_type,
+        account_id,
+        account_info: hashCpf_cnpj
+    },
+        process.env.JWT_BEARER_TOKEN_KEY,
+        {
+            expiresIn: "1h"
+        }
+    );
+
+    const responseDetail = {
+        "bearer_token": jwtBearerToken,
+        "refresh_token": refreshToken.rows[0].token
+    };
+
+    res.status(200);
+    res.json(successResponse(200, responseDetail));
+}
