@@ -173,3 +173,19 @@ export const refreshToken = async (req, res) => {
     res.status(200);
     res.json(successResponse(200, responseDetail));
 }
+
+export const logout = async (req, res) => {
+    const account_type = req.body.account_type;
+    const account_id = req.body.account_id;
+
+    const revokeResult = await revokeRefreshToken(account_id, account_type);
+
+    if (revokeResult.dbError) {
+        res.status(503);
+        res.json(errorResponse(503, null, revokeResult));
+        return;
+    }
+
+    res.status(204);
+    res.json(successResponse(204));
+}

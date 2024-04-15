@@ -71,3 +71,10 @@ export const selectCnpjStatusByAccountId = async (account_id) => {
 
     return (result);
 }
+
+export const selectCnpjByAccountId = async (account_id) => {
+    var query = `SELECT cnpj FROM company WHERE id = $1`;
+    var result = await dbExecute(query, [account_id]);
+
+    return (result);
+}

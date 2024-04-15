@@ -1,4 +1,4 @@
-import { selectIdNameEmailPasswordStatusByCnpj, selectIdExpirationByCompanyAccount_id, selectIdAccountTypeCompanyIdExpirationByToken, selectCnpjStatusByAccountId } from "../models/Session.js";
+import { selectIdNameEmailPasswordStatusByCnpj, selectIdExpirationByCompanyAccount_id, selectIdAccountTypeCompanyIdExpirationByToken, selectCnpjStatusByAccountId, selectCnpjByAccountId } from "../models/Session.js";
 import { confirmAuthCode } from "../services/authCode.js";
 import { errorResponse } from "../services/responses/error.response.js";
 import { validateAuthCode } from "../services/validators/authCode.validator.js";
@@ -321,6 +321,56 @@ export const checkRefreshTokenPreviousConditions = async (req, res, next) => {
     req.body.account_id = decodedRefreshToken.account_id;
     req.body.cpf_cnpj = accountData.rows[0].cnpj;
     req.body.refreshTokenId = dbRefreshTokenInfos.rows[0].id;
+
+    next();
+}
+
+export const validateLogoutInput = (req, res, next) => {
+    const authorization = req.headers.authorization;
+
+    if (!authorization) {
+        res.status(401);
+        res.json(errorResponse(401, { authorization: "O header 'Authorization' é obrigatório" }));
+        return;
+    }
+
+    const bearer_token = authorization.substring(7);
+
+    try {
+        verify(bearer_token, process.env.JWT_BEARER_TOKEN_KEY);
+    } catch (error) {
+        res.status(401);
+        res.json(errorResponse(401, "'refresh_token' expirado ou inválido"));
+        return;
+    }
+
+    req.body.bearer_token = bearer_token;
+
+    next();
+}
+
+export const authLogout = async (req, res, next) => {
+    const bearer_token = req.body.bearer_token;
+
+    const decodedBearerToken = decode(bearer_token, process.env.JWT_BEARER_TOKEN_KEY);
+    const accountInfo = await selectCnpjByAccountId(decodedBearerToken.account_id);
+
+    if (accountInfo.dbError) {
+        res.status(503);
+        res.json(errorResponse(503, null, accountInfo));
+        return;
+    };
+
+    const accountInfoCompareResult = bcrypt.compareSync(accountInfo.rows[0].cnpj, decodedBearerToken.account_info);
+
+    if (accountInfoCompareResult != true) {
+        res.status(403);
+        res.json(errorResponse(403, "Você não possui permissão para realizar a ação"));
+        return;
+    }
+
+    req.body.account_type = decodedBearerToken.account_type;
+    req.body.account_id = decodedBearerToken.account_id;
 
     next();
 }
