@@ -340,7 +340,7 @@ export const validateLogoutInput = (req, res, next) => {
         verify(bearer_token, process.env.JWT_BEARER_TOKEN_KEY);
     } catch (error) {
         res.status(401);
-        res.json(errorResponse(401, "'refresh_token' expirado ou inválido"));
+        res.json(errorResponse(401, "'bearer_token' expirado ou inválido"));
         return;
     }
 
